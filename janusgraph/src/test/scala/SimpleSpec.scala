@@ -139,12 +139,14 @@ class SimpleSpec extends WordSpec with Matchers {
 
     val saturnV = graph.addV().property("name", Saturn)
     //val saturnV = graph + (Saturn, Name -> Saturn)
+    // ^^^^^^ not entirely sure if these two lines are equivalent... RPW 01-30-2018
+    // (not entirely sure I care, as long as the database writes properly)
+
     val sunV = graph.addV().property("name", "sun")
     //val sunV = graph + ("sun", Name -> "sun")
 
     saturnV.addE("orbits").addV("sun").next()  // addV returns GraphTraversal<S, Vertex> ie with the add vertex step added
     //saturnV --- "orbits" --> sunV
-
 
     //graph.tx().commit() // does not work
 
