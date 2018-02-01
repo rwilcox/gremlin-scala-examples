@@ -37,7 +37,7 @@ class SimpleSpec extends WordSpec with Matchers {
     val client : ClusteredClient = cluster.connect()
 
     val graph = JanusGraphFactory.open("inmemory")
-    val g = graph.traversal().withRemote( conf )
+    val g : GraphTraversalSource = graph.traversal().withRemote( conf )
 
     import org.janusgraph.core.attribute.Geoshape
     val saturn = g.addV(b.of(LABEL, "titan")).property(NAME, b.of(NAME, "saturn")).property(AGE, b.of(AGE, 10000)).next()
