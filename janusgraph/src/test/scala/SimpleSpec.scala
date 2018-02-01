@@ -87,7 +87,7 @@ class SimpleSpec extends WordSpec with Matchers {
     val saturnV : Vertex = graph + (Saturn, Name -> Saturn)
     val sunV    : Vertex = graph + ("sun", Name -> "sun")
     val edge    : Edge = saturnV --- "orbits" --> sunV
-    
+
     graph.V.count.head shouldBe 6
     graph.E.count.head shouldBe 1
 
@@ -139,7 +139,7 @@ class SimpleSpec extends WordSpec with Matchers {
       //graph + (Planet, Name -> s"vertex $i")
     }
 
-    val saturnV = graph.addV().property(Name, Saturn)
+    val saturnV = graph.addV().property(Name, Saturn).iterate()
     //val saturnV = graph + (Saturn, Name -> Saturn)
     // ^^^^^^ not entirely sure if these two lines are equivalent... RPW 01-30-2018
     // (not entirely sure I care, as long as the database writes properly)
