@@ -88,6 +88,8 @@ class SimpleSpec extends WordSpec with Matchers {
     val sunV    : Vertex = graph + ("sun", Name -> "sun")
     val edge    : Edge = saturnV --- "orbits" --> sunV
 
+    graph.tx.commit()
+
     graph.V.count.head shouldBe 6
     graph.E.count.head shouldBe 1
 
