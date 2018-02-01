@@ -7,7 +7,9 @@ import org.apache.tinkerpop.gremlin.driver.Client.ClusteredClient
 import org.apache.tinkerpop.gremlin.driver.Cluster
 import org.apache.tinkerpop.gremlin.driver.remote.DriverRemoteConnection
 import org.apache.tinkerpop.gremlin.process.remote.RemoteConnection
+import org.apache.tinkerpop.gremlin.process.traversal.Bindings
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource
+import org.apache.tinkerpop.gremlin.structure.VertexProperty
 import org.apache.tinkerpop.gremlin.structure.util.empty.EmptyGraph;
 
 class SimpleSpec extends WordSpec with Matchers {
@@ -56,16 +58,16 @@ class SimpleSpec extends WordSpec with Matchers {
   }
 
 
-  "janusgraph server gremlin-scala-example" in {
+  "janusgraph server structure DSL gremlin-scala-example" in {
     val conf = new BaseConfiguration()
     //conf.setProperty("storage.backend","inmemory")
     conf.setProperty("gremlin.remote.remoteConnectionClass", "org.apache.tinkerpop.gremlin.driver.remote.DriverRemoteConnection")
     conf.setProperty("gremlin.remote.driver.clusterFile", "src/test/resources/gremlin_server.yml")
     conf.setProperty("gremlin.remote.driver.sourceName", "g")
-    
+
     val cluster = Cluster.open("src/test/resources/gremlin_server.yml")
     val client : ClusteredClient = cluster.connect()
-    
+
     //val graph = EmptyGraph.instance().asScala().configure(_.withRemote( conf ) )
 
     val graph : ScalaGraph = JanusGraphFactory.open("inmemory").configure( _.withRemote( conf) )
@@ -80,15 +82,12 @@ class SimpleSpec extends WordSpec with Matchers {
     val Saturn = "saturn"
 
     (1 to 4) foreach { i ⇒
-      graph + (Planet, Name -> s"vertex $i")
+      graph + (Planet, Name -> s"vertex $i")  // + = shortcut for addVector
     }
     val saturnV : Vertex = graph + (Saturn, Name -> Saturn)
     val sunV    : Vertex = graph + ("sun", Name -> "sun")
     val edge    : Edge = saturnV --- "orbits" --> sunV
-
-
-    //graph.tx().commit() // does not work
-
+    
     graph.V.count.head shouldBe 6
     graph.E.count.head shouldBe 1
 
@@ -105,7 +104,7 @@ class SimpleSpec extends WordSpec with Matchers {
     //graph.close
   }
 
-  "janusgraph server Raw Gremlin (poorly ported from gremlin-scala)" in {
+  "gremlin traversal calls (poorly ported from gremlin-scala)" in {
     val conf = new BaseConfiguration()
     //conf.setProperty("storage.backend","inmemory")
     conf.setProperty("gremlin.remote.remoteConnectionClass", "org.apache.tinkerpop.gremlin.driver.remote.DriverRemoteConnection")
@@ -118,7 +117,9 @@ class SimpleSpec extends WordSpec with Matchers {
     //val traversalSource : GraphTraversalSource = JanusGraphFactory.open("inmemory").traversal().withRemote( DriverRemoteConnection.using(cluster, "g") )
     //val graph = new ScalaGraph( new TraversalSource(traversalSource))
 
-    val graph = JanusGraphFactory.open("inmemory").traversal().withRemote( DriverRemoteConnection.using(cluster, "g") )
+    val graph : ScalaGraph = JanusGraphFactory.open("inmemory").configure( _.withRemote( conf) )
+
+    //val graph : GraphTraversalSource = JanusGraphFactory.open("inmemory").traversal().withRemote( DriverRemoteConnection.using(cluster, "g") )
       //asScala().configure(_.withRemote( conf ) )
 
     //val graph : ScalaGraph = JanusGraphFactory.open("inmemory").configure( _.withRemote( conf) )
@@ -133,19 +134,20 @@ class SimpleSpec extends WordSpec with Matchers {
     val Saturn = "saturn"
 
     (1 to 4) foreach { i ⇒
-      graph.addV().property("name", s"vertex $i")
+
+      graph.addV().property(Name, s"vertex $i")
       //graph + (Planet, Name -> s"vertex $i")
     }
 
-    val saturnV = graph.addV().property("name", Saturn)
+    val saturnV = graph.addV().property(Name, Saturn)
     //val saturnV = graph + (Saturn, Name -> Saturn)
     // ^^^^^^ not entirely sure if these two lines are equivalent... RPW 01-30-2018
     // (not entirely sure I care, as long as the database writes properly)
 
-    val sunV = graph.addV().property("name", "sun")
+    val sunV = graph.addV().property(Name, "sun")
     //val sunV = graph + ("sun", Name -> "sun")
 
-    saturnV.addE("orbits").addV("sun").next()  // addV returns GraphTraversal<S, Vertex> ie with the add vertex step added
+    saturnV.addE("orbits").addV("sun").iterate()  // addV returns GraphTraversal<S, Vertex> ie with the add vertex step added
     //saturnV --- "orbits" --> sunV
 
     //graph.tx().commit() // does not work
@@ -165,4 +167,7 @@ class SimpleSpec extends WordSpec with Matchers {
     cluster.close()
     //graph.close
   }
+
+
+
 }
